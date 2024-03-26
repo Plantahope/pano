@@ -1,0 +1,256 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panoramic Image Viewer</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+    <style>
+        #panorama {
+    width: 100%;
+    height: 97vh;
+    position: relative;
+}
+#degreeScale {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 18px;
+    color: rgb(0, 0, 0);
+    z-index: 2;
+    font-weight: bold;
+}
+#degreeScale::before {
+    content: '';
+    position: absolute;
+    top: -15px; 
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 15px; 
+    background-color: rgb(0, 0, 0);
+    z-index: 1;
+}
+#controls {
+    position: absolute;
+    bottom: 0;
+    z-index: 2;
+    text-align: center;
+    width: 100%;
+    padding-bottom: 3px;
+}
+.ctrl {
+    padding: 8px 5px;
+    width: 30px;
+    text-align: center;
+    background: rgba(8, 189, 240, 0.8);
+    display: inline-block;
+    cursor: pointer;
+    position: relative;
+    display: inline-block;
+    margin: 5px;
+}
+.ctrl:hover::after {
+    content: attr(text);
+    position: absolute;
+    top: -30px; 
+    left:50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 5px;
+    border-radius: 5px;
+    display: inline-block;
+    white-space: nowrap;
+}
+.popup-container {
+    position: absolute;
+    top:-160%;
+    left: 50%;
+    transform: translate(-20%, -50%);
+    padding: 10px;
+    display: none;
+    z-index: 9999;
+}
+.popup-window {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0px;
+    position: relative;
+    border: 6px solid rgba(255, 255, 255, 0.8);
+}
+.popup-window img {
+    width: 100px;
+    height: auto;
+    cursor: pointer;
+}
+.popup-container.left {
+    left: calc(50% - 100px);
+}
+.popup-container.right {
+    left: calc(50% + 20px);
+}
+.popup-window-text {
+    position: absolute;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(0, 0, 0, 0.8);
+    font-size: 16px;
+    z-index: 1;
+    visibility: hidden;
+    font-weight: bold;
+}
+.popup-window:hover .popup-window-text {
+    visibility: visible;
+}
+.popup-window:hover {
+    border-color:rgba(8, 189, 240, 0.8);
+}
+    </style>
+    
+</head>
+<body>
+    <div id="panorama">
+        <div id="degreeScale">0</div>
+        <div id="controls">
+            <div class="ctrl" id="pan-up" text="Pan Up">&#9650;</div>
+            <div class="ctrl" id="pan-down" text="Pan Down">&#9660;</div>
+            <div class="ctrl" id="pan-left" text="Pan Left">&#9664;</div>
+            <div class="ctrl" id="pan-right" text="Pan Right">&#9654;</div>
+            <div class="ctrl" id="zoom-in" text="Zoom In">&plus;</div>
+            <div class="ctrl" id="zoom-out" text="Zoom Out">&minus;</div>
+            <div class="ctrl" id="fullscreen" text="Fullscreen">&#x2922;</div>
+            <div class="ctrl" id="switch-panorama" text="Height">&#8230;
+                <div class="popup-container left" id="popup-container-1">
+                    <div class="popup-window">
+                        <img src="image.jpg" alt="Image 1" id="image-1">
+                        <div class="popup-window-text">360°</div>
+                    </div>
+                </div>
+                <div class="popup-container right" id="popup-container-2">
+                    <div class="popup-window">
+                        <img src="image.jpg" alt="Image 2" id="image-2">
+                        <div class="popup-window-text">18.05m</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var viewer = pannellum.viewer('panorama', { 
+    "autoLoad": true,
+    "autoRotate": 0,
+    "showControls": false,  
+    "default": {
+        "firstScene": "image_1",
+    },
+
+    "scenes": {
+        "image_1": {
+            "type": "equirectangular",
+            "panorama": "image.jpg", 
+            "hfov":200
+        },
+
+        "image_2": {
+        "type": "equirectangular",
+        "panorama": "pan_image.jpg",
+        "hfov":200,
+        "haov": 360,
+        "vaov":150,
+        "minPitch":-25,
+        "maxPitch": 25
+      }
+    }
+});
+function togglePopupBackground(containerId, isHover) {
+var container = document.getElementById(containerId);
+if (isHover) {
+    container.style.backgroundColor = '';
+} else {
+    container.style.backgroundColor = 'rgb(0, 0, 0)';
+}
+}
+
+// Function to toggle the visibility of popup windows
+function togglePopupWindows() {
+    var popupContainer1 = document.getElementById('popup-container-1');
+    var popupContainer2 = document.getElementById('popup-container-2');
+    if (popupContainer1.style.display === 'block' || popupContainer2.style.display === 'block') {
+        popupContainer1.style.display = 'none';
+        popupContainer2.style.display = 'none';
+    } else {
+        popupContainer1.style.display = 'block';
+        popupContainer2.style.display = 'block';
+    }
+}
+
+// Event listener for height button
+document.getElementById('switch-panorama').addEventListener('click', function() {
+    togglePopupWindows();
+});
+
+// Event listener for image selection
+document.getElementById('image-1').addEventListener('click', function() {
+    viewer.loadScene('image_1');
+    togglePopupWindows();
+});
+
+document.getElementById('image-2').addEventListener('click', function() {
+    viewer.loadScene('image_2');
+    togglePopupWindows();
+});
+
+// Function to update degree scale
+function updateDegreeScale() {
+    var degreeScale = document.getElementById('degreeScale');
+    var yaw = viewer.getYaw();
+    if (yaw < 0) {
+        yaw += 360; 
+    }
+    degreeScale.innerText = `${yaw.toFixed(1)}`;
+}
+
+// Event listeners for control buttons
+document.getElementById('pan-up').addEventListener('click', function() {
+    viewer.setPitch(viewer.getPitch() + 10);
+    updateDegreeScale();
+});
+document.getElementById('pan-down').addEventListener('click', function() {
+    viewer.setPitch(viewer.getPitch() - 10);
+    updateDegreeScale();
+});
+document.getElementById('pan-left').addEventListener('click', function() {
+    viewer.setYaw(viewer.getYaw() - 10);
+    updateDegreeScale();
+});
+document.getElementById('pan-right').addEventListener('click', function() {
+    viewer.setYaw(viewer.getYaw() + 10);
+    updateDegreeScale();
+});
+document.getElementById('zoom-in').addEventListener('click', function() {
+    viewer.setHfov(viewer.getHfov() - 10);
+    updateDegreeScale();
+});
+document.getElementById('zoom-out').addEventListener('click', function() {
+    viewer.setHfov(viewer.getHfov() + 10);
+    updateDegreeScale();
+});
+document.getElementById('fullscreen').addEventListener('click', function() {
+    viewer.toggleFullscreen();
+    updateDegreeScale();
+});
+
+// Event listener to update degree scale during view change
+viewer.on('viewchange', updateDegreeScale);
+
+// Function to continuously update the degree scale during auto-rotation
+viewer.on('mousedown', function() {
+    setInterval(updateDegreeScale, 100);
+});
+    </script>  
+</body>
+</html>
